@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --partition=gpu4_long
+#SBATCH --partition=gpu4_dev
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=4
 #SBATCH --cpus-per-task=1
