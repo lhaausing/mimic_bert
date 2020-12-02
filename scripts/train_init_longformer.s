@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --partition=gpu4_dev
+#SBATCH --partition=gpu4_long
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=4
 #SBATCH --cpus-per-task=1
@@ -9,7 +9,7 @@
 #SBATCH --gres=gpu:4
 #SBATCH --mail-type=END
 #SBATCH --mail-user=xl3119@nyu.edu
-#SBATCH --output=/scratch/xl3119/capstone/out_log/test_multifiles_train.log
+#SBATCH --output=/gpfs/scratch/xl3119/capstone/out_log/test_multifiles_train.log
 
 module load anaconda3/gpu/5.2.0
 module load cuda/10.1.105

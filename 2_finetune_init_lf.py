@@ -87,9 +87,6 @@ if __name__ == "__main__":
 
     training_args, model_args = parser.parse_args_into_dataclasses(look_for_args_file=False, args=[
     '--output_dir', 'Clinical-longformer-pretrain-models',
-    '--use_init_model',
-    '--config_dir', '/gpfs/scratch/xl3119/mimic_bert/longformer_base_4096/config.json'
-    '--tokenizer_dir', '/gpfs/scratch/xl3119/mimic_bert/mimic_tokenizer'
     '--warmup_steps', '500',
     '--learning_rate', '0.0005',
     '--weight_decay', '0.01',
@@ -104,6 +101,9 @@ if __name__ == "__main__":
     #'--evaluate_during_training', # this is removed to reduce training time
     '--do_train'
     ])
+    '--use_init_model',
+    '--config_dir', '/gpfs/scratch/xl3119/mimic_bert/longformer_base_4096/config.json'
+    '--tokenizer_dir', '/gpfs/scratch/xl3119/mimic_bert/mimic_tokenizer'
     train_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_train_patients.txt'
     val_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_val_patients.txt.txt'
     # these are small file for test
@@ -113,17 +113,16 @@ if __name__ == "__main__":
     training_args.train_datapath = train_fn
 
 ##################### use pretrianed longformer in transformer
-    if model_args.use_init_model:
-        init_config = LongformerConfig.from_json_file(model_args.config_dir)
-        bert_tokenizer = BertTokenizer.from_pretrained(model_args.tokenizer_dir)
-        word_embeddings =  np.loadtxt(path + "word_embedding_matrix.txt")
-        # load dictionary of mapping word to index
-        with open(path+"word_to_idx.json","r") as json_file:
-            word_to_idx = json.load(json_file)
+    init_config = LongformerConfig.from_json_file('/gpfs/scratch/xl3119/mimic_bert/longformer_base_4096/config.json')
+    bert_tokenizer = BertTokenizer.from_pretrained('/gpfs/scratch/xl3119/mimic_bert/mimic_tokenizer')
+    word_embeddings =  np.loadtxt(path + "word_embedding_matrix.txt")
+    # load dictionary of mapping word to index
+    with open(path+"word_to_idx.json","r") as json_file:
+        word_to_idx = json.load(json_file)
 
-        longformer_model = LongformerForMaskedLM(init_config)
-        longformer_model = use_embeddings_fasttext(longformer_model, word_embeddings)
-        bert_tokenizer = BertTokenizer.from_pretrained('mimic_tokenizer')
+    longformer_model = LongformerForMaskedLM(init_config)
+    longformer_model = use_embeddings_fasttext(longformer_model, word_embeddings)
+    bert_tokenizer = BertTokenizer.from_pretrained('mimic_tokenizer')
     # longformer_tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
 
     logger.info('Train and eval with Longformer pretrained ...')
