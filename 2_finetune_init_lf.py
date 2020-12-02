@@ -112,7 +112,7 @@ if __name__ == "__main__":
     training_args.train_datapath = train_fn
 
 ##################### use pretrianed longformer in transformer
-    init_config = LongformerConfig.from_json_file('longformer_base_4096/config.json')
+    init_config = LongformerConfig.from_json_file('config_files/longformer_base_4096/config.json')
     bert_tokenizer = BertTokenizer.from_pretrained('mimic_tokenizer')
     word_embeddings =  np.loadtxt(join('/gpfs/scratch/xl3119/capstone/wd_emb',"word_embedding_matrix.txt"))
     longformer_model = LongformerForMaskedLM(init_config)
