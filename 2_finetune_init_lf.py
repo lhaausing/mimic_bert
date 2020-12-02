@@ -100,8 +100,8 @@ if __name__ == "__main__":
     '--per_gpu_train_batch_size', '1',  # 32GB gpu with fp32
     '--gradient_accumulation_steps', '32',
     #'--evaluate_during_training', # this is removed to reduce training time
-    '--do_train'
-    '--do_eval'
+    '--do_train',
+    '--do_eval',
     ])
     train_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_train_patients.txt'
     val_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_val_patients.txt.txt'
