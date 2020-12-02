@@ -15,8 +15,8 @@
     512,
     512
   ],
-  "bos_token_id": 0,
-  "eos_token_id": 2,
+  "bos_token_id": 9,
+  "eos_token_id": 8,
   "gradient_checkpointing": false,
   "hidden_act": "gelu",
   "hidden_dropout_prob": 0.1,
@@ -29,8 +29,8 @@
   "model_type": "longformer",
   "num_attention_heads": 12,
   "num_hidden_layers": 12,
-  "pad_token_id": 1,
+  "pad_token_id": 0,
   "sep_token_id": 2,
   "type_vocab_size": 1,
-  "vocab_size": 50265
+  "vocab_size": 50005
 }

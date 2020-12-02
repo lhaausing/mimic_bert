@@ -5,6 +5,7 @@ import math
 from dataclasses import dataclass, field
 from torch.utils.data import ConcatDataset
 import glob
+import numpy as np
 
 from transformers import TextDataset, LineByLineTextDataset, DataCollatorForLanguageModeling, Trainer
 # use longformer directly instead of using create long model for Roberta
@@ -15,6 +16,15 @@ from transformers.modeling_longformer import LongformerSelfAttention
 # Choose GPU
 import os
 #os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+def use_embeddings_fasttext(model, word_embeddings):
+    emb_tensor = torch.from_numpy(word_embeddings)
+    size = emb_tensor.size()
+    emb_class = nn.Embedding(size[0], size[1],padding_idx=0)
+    emb_class.weight = emb_tensor
+    model.embeddings.word_embeddings = emb_class
+
+    return model
 
 def pretrain_and_evaluate(args, model, tokenizer, eval_only, model_path=None):
     # train from scrath if model_path=None
@@ -94,8 +104,8 @@ if __name__ == "__main__":
     #'--evaluate_during_training', # this is removed to reduce training time
     '--do_train'
     ])
-    train_fn = './Preprocessed_Data/Preproc0_clinical_sentences_all_with_number_train.txt'
-    val_fn = './Preprocessed_Data/Preproc0_clinical_sentences_all_with_number_val.txt'
+    train_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_train_patients.txt'
+    val_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_val_patients.txt.txt'
     # these are small file for test
 #     train_fn = './Preprocessed_Data/test_clinical_sentences_all_with_number_train.txt'
 #     val_fn = './Preprocessed_Data/test_clinical_sentences_all_with_number_val.txt'
@@ -106,8 +116,14 @@ if __name__ == "__main__":
     if model_args.use_init_model:
         init_config = LongformerConfig.from_json_file(model_args.config_dir)
         bert_tokenizer = BertTokenizer.from_pretrained(model_args.tokenizer_dir)
-    longformer_model = LongformerForMaskedLM(init_config)
-    bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased-tokenizer')
+        word_embeddings =  np.loadtxt(path + "word_embedding_matrix.txt")
+        # load dictionary of mapping word to index
+        with open(path+"word_to_idx.json","r") as json_file:
+            word_to_idx = json.load(json_file)
+
+        longformer_model = LongformerForMaskedLM(init_config)
+        longformer_model = use_embeddings_fasttext(longformer_model, word_embeddings)
+        bert_tokenizer = BertTokenizer.from_pretrained('mimic_tokenizer')
     # longformer_tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
 
     logger.info('Train and eval with Longformer pretrained ...')
