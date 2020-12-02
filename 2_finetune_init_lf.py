@@ -41,7 +41,7 @@ def pretrain_and_evaluate(args, model, tokenizer, eval_only, model_path=None):
     else:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
 
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('./Preprocessed_Data/splited_train/*')])
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/splited_train/*')])
 
     print("Creating data collator with mlm")
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
