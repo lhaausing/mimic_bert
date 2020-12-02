@@ -1,6 +1,7 @@
 import logging
 import argparse
 import os
+from os.path import join
 import math
 from dataclasses import dataclass, field
 from torch.utils.data import ConcatDataset
@@ -115,11 +116,7 @@ if __name__ == "__main__":
 ##################### use pretrianed longformer in transformer
     init_config = LongformerConfig.from_json_file('/gpfs/scratch/xl3119/mimic_bert/longformer_base_4096/config.json')
     bert_tokenizer = BertTokenizer.from_pretrained('/gpfs/scratch/xl3119/mimic_bert/mimic_tokenizer')
-    word_embeddings =  np.loadtxt(path + "word_embedding_matrix.txt")
-    # load dictionary of mapping word to index
-    with open(path+"word_to_idx.json","r") as json_file:
-        word_to_idx = json.load(json_file)
-
+    word_embeddings =  np.loadtxt(join('/gpfs/scratch/xl3119/capstone/wd_emb',"word_embedding_matrix.txt"))
     longformer_model = LongformerForMaskedLM(init_config)
     longformer_model = use_embeddings_fasttext(longformer_model, word_embeddings)
     bert_tokenizer = BertTokenizer.from_pretrained('mimic_tokenizer')
