@@ -106,7 +106,7 @@ if __name__ == "__main__":
     '--do_eval',
     ])
     train_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_train_patients.txt'
-    val_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_val_patients.txt.txt'
+    val_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_val_patients.txt'
     # these are small file for test
 #     train_fn = './Preprocessed_Data/test_clinical_sentences_all_with_number_train.txt'
 #     val_fn = './Preprocessed_Data/test_clinical_sentences_all_with_number_val.txt'
