@@ -9,6 +9,7 @@
 #SBATCH --gres=gpu:4
 #SBATCH --mail-type=END
 #SBATCH --mail-user=xl3119@nyu.edu
+#SBATCH --output=/scratch/xl3119/capstone/out_log/test_multifiles_train.log
 
 module load anaconda3/gpu/5.2.0
 module load cuda/10.1.105
