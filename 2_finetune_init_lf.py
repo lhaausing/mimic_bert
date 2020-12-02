@@ -3,6 +3,8 @@ import argparse
 import os
 from os.path import join
 import math
+import torch
+import torch.nn as nn
 from dataclasses import dataclass, field
 from torch.utils.data import ConcatDataset
 import glob
