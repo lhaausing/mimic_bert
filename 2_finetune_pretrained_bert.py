@@ -113,7 +113,7 @@ if __name__ == "__main__":
     init_config = BertConfig.from_json_file('config_files/bert_base_uncased/config.json')
     mimic_tokenizer = BertTokenizer.from_pretrained('mimic_tokenizer')
     word_embeddings =  np.loadtxt(join('/gpfs/scratch/xl3119/capstone/wd_emb',"word_embedding_matrix.txt"))
-    longformer_model = LongformerForMaskedLM(init_config)
+    longformer_model = BertForMaskedLM(init_config)
     longformer_model = use_embeddings_fasttext(longformer_model, word_embeddings)
     # longformer_tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
 
