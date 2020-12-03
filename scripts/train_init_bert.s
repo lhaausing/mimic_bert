@@ -9,7 +9,7 @@
 #SBATCH --gres=gpu:8
 #SBATCH --mail-type=END
 #SBATCH --mail-user=xl3119@nyu.edu
-#SBATCH --output=/gpfs/scratch/xl3119/capstone/out_log/longformer_mimic_tokenizer.log
+#SBATCH --output=/gpfs/scratch/xl3119/capstone/out_log/bert_mimic_tokenizer.log
 
 module load anaconda3/gpu/5.2.0
 module load cuda/10.1.105
@@ -20,4 +20,4 @@ export PYTHONPATH=/gpfs/share/apps/anaconda3/gpu/5.2.0/envs/mimic_bert/lib/pytho
 cd /gpfs/scratch/xl3119/capstone/mimic_bert
 
 
-python3 2_finetune_pretrained_bert.py
+python3 2_finetune_init_lf.py

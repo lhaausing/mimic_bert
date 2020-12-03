@@ -89,21 +89,20 @@ if __name__ == "__main__":
     parser = HfArgumentParser((TrainingArguments, ModelArgs,))
 
     training_args, model_args = parser.parse_args_into_dataclasses(look_for_args_file=False, args=[
-    '--output_dir', 'Clinical-longformer-pretrain-models',
+    '--output_dir', '/gpfs/scratch/xl3119/capstone/checkpoints/longformer_mimic_tokenizer',
     '--warmup_steps', '500',
     '--learning_rate', '0.0005',
     '--weight_decay', '0.01',
     '--adam_epsilon', '1e-6',
-    '--max_steps', '1',
+    '--max_steps', '150000',
     '--logging_steps', '1000',
     '--save_steps', '1000',
     '--max_grad_norm', '5.0',
     '--per_gpu_eval_batch_size', '2',
     '--per_gpu_train_batch_size', '1',  # 32GB gpu with fp32
-    '--gradient_accumulation_steps', '32',
+    '--gradient_accumulation_steps', '4',
     #'--evaluate_during_training', # this is removed to reduce training time
     '--do_train',
-    '--do_eval',
     ])
     train_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_train_patients.txt'
     val_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_val_patients.txt'
