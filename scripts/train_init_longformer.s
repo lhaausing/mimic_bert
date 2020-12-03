@@ -5,7 +5,7 @@
 #SBATCH --tasks-per-node=8
 #SBATCH --cpus-per-task=1
 #SBATCH --time=3-00:00:00
-#SBATCH --mem-per-cpu=100G
+#SBATCH --mem-per-cpu=64G
 #SBATCH --gres=gpu:8
 #SBATCH --mail-type=END
 #SBATCH --mail-user=xl3119@nyu.edu
@@ -20,4 +20,4 @@ export PYTHONPATH=/gpfs/share/apps/anaconda3/gpu/5.2.0/envs/mimic_bert/lib/pytho
 cd /gpfs/scratch/xl3119/capstone/mimic_bert
 
 
-python3 2_finetune_pretrained_bert.py
+python3 2_finetune_init_lf.py
