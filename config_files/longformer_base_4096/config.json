@@ -32,5 +32,5 @@
   "pad_token_id": 0,
   "sep_token_id": 2,
   "type_vocab_size": 1,
-  "vocab_size": 50005
+  "vocab_size": 50004
 }
