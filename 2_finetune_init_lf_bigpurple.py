@@ -103,6 +103,7 @@ if __name__ == "__main__":
     '--gradient_accumulation_steps', '4',
     #'--evaluate_during_training', # this is removed to reduce training time
     '--do_train',
+    '--fp16',
     ])
     #train_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_train_patients.txt'
     #val_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_val_patients.txt'
