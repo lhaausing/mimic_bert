@@ -41,7 +41,8 @@ def pretrain_and_evaluate(args, model, tokenizer, eval_only, model_path=None):
     else:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
 
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/splited_train/*')])
+        #train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/splited_train/*')])
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
 
     print("Creating data collator with mlm")
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     parser = HfArgumentParser((TrainingArguments, ModelArgs,))
 
     training_args, model_args = parser.parse_args_into_dataclasses(look_for_args_file=False, args=[
-    '--output_dir', '/gpfs/scratch/xl3119/capstone/checkpoints/longformer_mimic_tokenizer',
+    '--output_dir', '/scratch/xl3119/capstone/checkpoints/longformer_mimic_tokenizer',
     '--warmup_steps', '500',
     '--learning_rate', '0.0005',
     '--weight_decay', '0.01',
@@ -104,18 +105,18 @@ if __name__ == "__main__":
     #'--evaluate_during_training', # this is removed to reduce training time
     '--do_train',
     ])
-    train_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_train_patients.txt'
-    val_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_val_patients.txt'
+    #train_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_train_patients.txt'
+    #val_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_val_patients.txt'
     # these are small file for test
-#     train_fn = './Preprocessed_Data/test_clinical_sentences_all_with_number_train.txt'
-#     val_fn = './Preprocessed_Data/test_clinical_sentences_all_with_number_val.txt'
-    training_args.val_datapath = val_fn
+    train_fn = '/scratch/xl3119/capstone/data/sample/sample.txt'
+    val_fn = '/scratch/xl3119/capstone/data/sample/sample.txt'
     training_args.train_datapath = train_fn
+    training_args.val_datapath = val_fn
 
 ##################### use pretrianed longformer in transformer
     init_config = LongformerConfig.from_json_file('config_files/longformer_base_4096/config.json')
     mimic_tokenizer = BertTokenizer.from_pretrained('mimic_tokenizer')
-    word_embeddings =  np.loadtxt(join('/gpfs/scratch/xl3119/capstone/wd_emb',"word_embedding_matrix.txt"))
+    word_embeddings =  np.loadtxt(join('/scratch/xl3119/capstone/wd_emb',"word_embedding_matrix.txt"))
     longformer_model = LongformerForMaskedLM(init_config)
     longformer_model = use_embeddings_fasttext(longformer_model, word_embeddings)
     # longformer_tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
