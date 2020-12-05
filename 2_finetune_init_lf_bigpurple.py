@@ -24,8 +24,7 @@ def use_embeddings_fasttext(model, word_embeddings):
     emb_tensor = torch.from_numpy(word_embeddings)
     size = emb_tensor.size()
     emb_class = nn.Embedding(size[0], size[1],padding_idx=0)
-    emb_class.weight.data = emb_tensor
-    model.longformer.embeddings.word_embeddings = emb_class
+    model.longformer.embeddings.word_embeddings.weight.data = emb_tensor
 
     return model
 
