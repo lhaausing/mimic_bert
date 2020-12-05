@@ -21,27 +21,27 @@ import os
 #os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 def use_embeddings_fasttext(model, word_embeddings):
-    emb_tensor = torch.from_numpy(word_embeddings)
-    size = emb_tensor.size()
-    emb_class = nn.Embedding(size[0], size[1],padding_idx=0)
+    emb_tensor = torch.from_numpy(word_embeddings).float()
     model.longformer.embeddings.word_embeddings.weight.data = emb_tensor
-
     return model
 
-def pretrain_and_evaluate(args, model, tokenizer, eval_only, model_path=None):
+def pretrain_and_evaluate(args, model, tokenizer, train_only, eval_only, model_path=None):
     # train from scrath if model_path=None
     def _dataset(file_path):
         return LineByLineTextDataset(tokenizer=tokenizer, file_path=file_path, block_size=tokenizer.max_len)
 
-    val_dataset = _dataset(args.val_datapath)
-    if eval_only:
+    if train_only:
+        logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
+    elif eval_only:
         print("Assign validation dataset")
+        val_dataset = _dataset(args.val_datapath)
         train_dataset = val_dataset
     else:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
-
         #train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/splited_train/*')])
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/sample/*')])
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
+        val_dataset = _dataset(args.val_datapath)
 
     print("Creating data collator with mlm")
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
@@ -52,8 +52,6 @@ def pretrain_and_evaluate(args, model, tokenizer, eval_only, model_path=None):
     if not eval_only:
         trainer.train(model_path=model_path) # None train from scratch
         trainer.save_model(args.output_dir) # save model to the output_dir
-
-
 
 
     # Evaluation
@@ -122,6 +120,6 @@ if __name__ == "__main__":
     # longformer_tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
 
     logger.info('Train and eval with Longformer pretrained ...')
-    pretrain_and_evaluate(training_args, longformer_model, mimic_tokenizer, eval_only=False, model_path=None\
+    pretrain_and_evaluate(training_args, longformer_model, mimic_tokenizer, train_only=True, eval_only=False, model_path=None\
                           #,model_path=training_args.output_dir # Local path to the model if the model to train has been ins tantiated from a local path.
                          )
