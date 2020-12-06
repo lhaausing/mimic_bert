@@ -89,13 +89,13 @@ if __name__ == "__main__":
 
     training_args, model_args = parser.parse_args_into_dataclasses(look_for_args_file=False, args=[
     '--output_dir', '/gpfs/scratch/xl3119/capstone/checkpoints/longformer_mimic_tokenizer_gpu4_short',
-    '--warmup_steps', '500',
+    '--warmup_steps', '250',
     '--learning_rate', '1e-4',
     '--weight_decay', '0.01',
     '--adam_epsilon', '1e-6',
-    '--max_steps', '37500',
-    '--logging_steps', '250',
-    '--save_steps', '250',
+    '--max_steps', '75000',
+    '--logging_steps', '500',
+    '--save_steps', '500',
     '--max_grad_norm', '5.0',
     '--per_gpu_eval_batch_size', '1',
     '--per_gpu_train_batch_size', '1',  # 32GB gpu with fp32
