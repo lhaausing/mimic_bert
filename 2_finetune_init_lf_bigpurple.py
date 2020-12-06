@@ -32,7 +32,7 @@ def pretrain_and_evaluate(args, model, tokenizer, train_only, eval_only, model_p
 
     if train_only:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/sample/*')])
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/splited_train/*')])
         val_dataset = _dataset(args.val_datapath)
     elif eval_only:
         print("Assign validation dataset")
@@ -41,7 +41,7 @@ def pretrain_and_evaluate(args, model, tokenizer, train_only, eval_only, model_p
     else:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
         #train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/splited_train/*')])
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/splited_train/*')])
         val_dataset = _dataset(args.val_datapath)
 
     print("Creating data collator with mlm")
@@ -88,26 +88,26 @@ if __name__ == "__main__":
     parser = HfArgumentParser((TrainingArguments, ModelArgs,))
 
     training_args, model_args = parser.parse_args_into_dataclasses(look_for_args_file=False, args=[
-    '--output_dir', '/gpfs/scratch/xl3119/capstone/checkpoints/longformer_mimic_tokenizer',
+    '--output_dir', '/gpfs/scratch/xl3119/capstone/checkpoints/longformer_mimic_tokenizer_gpu4_short',
     '--warmup_steps', '500',
     '--learning_rate', '0.0005',
     '--weight_decay', '0.01',
     '--adam_epsilon', '1e-6',
-    '--max_steps', '150000',
-    '--logging_steps', '1000',
-    '--save_steps', '1000',
+    '--max_steps', '37500',
+    '--logging_steps', '250',
+    '--save_steps', '250',
     '--max_grad_norm', '5.0',
     '--per_gpu_eval_batch_size', '2',
     '--per_gpu_train_batch_size', '1',  # 32GB gpu with fp32
-    '--gradient_accumulation_steps', '4',
+    '--gradient_accumulation_steps', '8',
     #'--evaluate_during_training', # this is removed to reduce training time
     '--do_train',
     ])
     #train_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_train_patients.txt'
     #val_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_val_patients.txt'
     # these are small file for test
-    train_fn = '/gpfs/scratch/xl3119/capstone/data/sample/sample.txt'
-    val_fn = '/gpfs/scratch/xl3119/capstone/data/sample/sample.txt'
+    train_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_train_patients_token.txt'
+    val_fn = '/gpfs/scratch/xl3119/capstone/data/Preproc0_clinical_sentences_all_without_number_val_patients_token.txt'
     training_args.train_datapath = train_fn
     training_args.val_datapath = val_fn
 
