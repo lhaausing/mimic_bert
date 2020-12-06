@@ -27,7 +27,7 @@ def use_embeddings_fasttext(model, word_embeddings):
 def pretrain_and_evaluate(args, model, tokenizer, train_only, eval_only, model_path=None):
     # train from scrath if model_path=None
     def _dataset(file_path):
-        return LineByLineTextDataset(tokenizer=tokenizer, file_path=file_path, block_size=tokenizer.max_len)
+        return LineByLineTextDataset(tokenizer=tokenizer, file_path=file_path, block_size=512)
 
     if train_only:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
