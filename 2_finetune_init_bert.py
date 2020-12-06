@@ -31,8 +31,10 @@ def pretrain_and_evaluate(args, model, tokenizer, train_only, eval_only, model_p
 
     if train_only:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/splited_train/*')])
-        val_dataset = _dataset(args.val_datapath)
+        #train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/splited_train/*')])
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
+        #val_dataset = _dataset(args.val_datapath)
+        val_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
     elif eval_only:
         print("Assign validation dataset")
         val_dataset = _dataset(args.val_datapath)
@@ -40,8 +42,9 @@ def pretrain_and_evaluate(args, model, tokenizer, train_only, eval_only, model_p
     else:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
         #train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/splited_train/*')])
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/splited_train/*')])
-        val_dataset = _dataset(args.val_datapath)
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
+        #val_dataset = _dataset(args.val_datapath)
+        val_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
 
     print("Creating data collator with mlm")
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
@@ -81,7 +84,7 @@ if __name__ == "__main__":
     parser = HfArgumentParser((TrainingArguments, ModelArgs,))
 
     training_args, model_args = parser.parse_args_into_dataclasses(look_for_args_file=False, args=[
-    '--output_dir', '/gpfs/scratch/xl3119/capstone/checkpoints/longformer_mimic_tokenizer_gpu4_short',
+    '--output_dir', '/gpfs/scratch/xl3119/capstone/checkpoints/bert_mimic_tokenizer_gpu4_short',
     '--warmup_steps', '250',
     '--learning_rate', '1e-4',
     '--weight_decay', '0.01',
