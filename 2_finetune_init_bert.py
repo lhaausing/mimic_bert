@@ -76,7 +76,11 @@ def pretrain_and_evaluate(args, model, tokenizer, train_only, eval_only, model_p
         for key, value in results.items():
             logger.info(f"  {key} = {value}")
             writer.write(f"{key} = {value}\n")
-
+@dataclass
+class ModelArgs:
+    attention_window: int = field(default=512, metadata={"help": "Size of attention window"})
+    max_pos: int = field(default=4096, metadata={"help": "Maximum position"})
+    
 if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     logging.basicConfig(level=logging.INFO)
