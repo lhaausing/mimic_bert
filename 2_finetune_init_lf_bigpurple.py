@@ -99,7 +99,7 @@ if __name__ == "__main__":
     '--learning_rate', '1e-4',
     '--weight_decay', '0.01',
     '--adam_epsilon', '1e-6',
-    '--max_steps', '75000',
+    '--max_steps', '150000',
     '--logging_steps', '500',
     '--save_steps', '500',
     '--max_grad_norm', '5.0',

@@ -31,20 +31,20 @@ def pretrain_and_evaluate(args, model, tokenizer, train_only, eval_only, model_p
 
     if train_only:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
-        #train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/splited_train/*')])
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
-        #val_dataset = _dataset(args.val_datapath)
-        val_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/splited_train/*')])
+        #train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
+        val_dataset = _dataset(args.val_datapath)
+        #val_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
     elif eval_only:
         print("Assign validation dataset")
         val_dataset = _dataset(args.val_datapath)
         train_dataset = val_dataset
     else:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
-        #train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/splited_train/*')])
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
-        #val_dataset = _dataset(args.val_datapath)
-        val_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/splited_train/*')])
+        #train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
+        val_dataset = _dataset(args.val_datapath)
+        #val_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
 
     print("Creating data collator with mlm")
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
@@ -116,6 +116,6 @@ if __name__ == "__main__":
     # longformer_tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
 
     logger.info('Train and eval with Longformer pretrained ...')
-    pretrain_and_evaluate(training_args, bert, mimic_tokenizer, train_only=True, eval_only=False, model_path=None\
+    pretrain_and_evaluate(training_args, bert_model, mimic_tokenizer, train_only=True, eval_only=False, model_path=None\
                           #,model_path=training_args.output_dir # Local path to the model if the model to train has been ins tantiated from a local path.
                          )
