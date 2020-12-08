@@ -36,12 +36,12 @@ def pretrain_and_evaluate(args, model, tokenizer, train_only, eval_only, model_p
         val_dataset = _dataset(args.val_datapath)
     elif eval_only:
         print("Assign validation dataset")
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/sample/*')])
         val_dataset = _dataset(args.val_datapath)
     else:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
         #train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/splited_train/*')])
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/splited_train/*')])
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/splited_train/*')])
         val_dataset = _dataset(args.val_datapath)
 
     print("Creating data collator with mlm")

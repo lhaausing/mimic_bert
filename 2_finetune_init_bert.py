@@ -41,7 +41,7 @@ def pretrain_and_evaluate(args, model, tokenizer, train_only, eval_only, model_p
         train_dataset = val_dataset
     else:
         logger.info(f'Loading and tokenizing training data is usually slow: {args.train_datapath}')
-        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/splited_train/*')])
+        train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/gpfs/scratch/xl3119/capstone/data/splited_train/*')])
         #train_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
         val_dataset = _dataset(args.val_datapath)
         #val_dataset = ConcatDataset([_dataset(f) for f in glob.glob('/scratch/xl3119/capstone/data/sample/*')])
@@ -80,7 +80,7 @@ def pretrain_and_evaluate(args, model, tokenizer, train_only, eval_only, model_p
 class ModelArgs:
     attention_window: int = field(default=512, metadata={"help": "Size of attention window"})
     max_pos: int = field(default=4096, metadata={"help": "Maximum position"})
-    
+
 if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     logging.basicConfig(level=logging.INFO)
