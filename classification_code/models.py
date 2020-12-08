@@ -3,6 +3,7 @@ import random
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+import sys
 from os.path import join
 
 import torch
@@ -23,7 +24,7 @@ class Attn_Layer(nn.Module):
     def __init__(self, hid, class_size):
         super().__init__()
         self.hid = hid
-        self.c = class_size
+        self.c = 1
         self.w = nn.Linear(self.hid, self.c)
 
     def forward(self, input_embeds):
@@ -184,28 +185,63 @@ class local_bert(nn.Module):
 
         return logits
 
-class snippet_bert(nn.Module):
-    def __init__(self, model_name='', n_class = 50):
+class snippet_model(nn.Module):
+    def __init__(self, model_name='', n_class = 50,layer=0,type='Longformer'):
         super().__init__()
         #Transformers Encoder
-        self.bert = AutoModel.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name)
+        self.freeze=False 
+
+        # !!! different layers
+        if type=="Longformer":
+            if layer>0 and layer<=12:
+                self.freeze=True
+                ct=0
+                for child in self.model.children():
+                    if ct==1: # except the classification layer
+                        newmodel=child
+                        cnt=0
+                        for newchild in newmodel.children():
+                            if cnt==1: # except embedding and pool layer
+                                finalmodel=newchild.layer
+                                cnt_layer=1
+                                for finalchild in finalmodel:
+                                    if layer>=cnt_layer:
+                                        for param in child.parameters():
+                                            param.requires_grad = False
+                                    cnt_layer+=1
+                            cnt+=1
+                    ct+=1
 
         #hyperparams
         self.model_name = model_name
         self.c = n_class
-        self.hid = self.bert.config.hidden_size
+        self.hid = self.model.config.hidden_size
 
         #model blocks
         self.fc = nn.Linear(self.hid, self.c)
 
-    def forward(self, input_ids, attn_masks):
+    def forward(self, input_ids, attn_masks,length):
         #Calculate sample windows
 
         #Pass input_windows ids to BERT
         #Concatenate all pooled outputs
-        _, x_cls = self.bert(input_ids=input_ids,attention_mask=attn_masks)
+        tmp,x_cls= self.model(input_ids=input_ids,attention_mask=attn_masks)
+        if self.freeze:
+            # !!!from bert 得到 tensor (batch size, seq length, hid dimension)
+            # 如果是用整个句子得到的tensor的话就要把整个句子用max pooling或者attention mechanism得到一个跟cls的tensor维度一样的东西再接fully connected layer
+            # meanpooling:
+            # print(tmp.shape)
+            # sys.stdout.flush()
+            # get the mean
+            tmp=tmp.sum(dim=1)
+            x=torch.div(tmp,length)
+        else:
+            x=x_cls
+
 
         #Fully Connected Layer
-        logits = self.fc(x_cls)
+        logits = self.fc(x)
 
         return logits
+

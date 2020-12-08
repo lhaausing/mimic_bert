@@ -28,6 +28,7 @@ from data import *
 from utils import *
 from models import *
 
+# avoid mistakes
 set_global_logging_level(logging.ERROR, ["transformers", "nlp", "torch", "tensorflow", "tensorboard", "wandb"])
 
 def eval(args, model, val_loader):
@@ -41,40 +42,46 @@ def eval(args, model, val_loader):
     yhat_raw = []
 
     with torch.no_grad():
-        for idx, (input_ids, attn_mask, labels) in tqdm(enumerate(val_loader)):
-            if args.use_ngram:
-                ngram_encoding = get_ngram_encoding(args, attn_mask.to(args.device), args.ngram_size).cpu()
-                logits = model(input_ids, ngram_encoding)
-                loss = criterion(logits.to(args.device), labels.to(args.device))
+        for idx, (input_ids, attn_masks, labels) in tqdm(enumerate(val_loader)):
+        # no get_val_snippets, directly get 512 from bert
+            #input_ids, attn_mask, list_labels = get_val_snippets(args, input_ids, attn_mask, labels)
+            for i in range(len(input_ids)):
+    
+                input_id=input_ids[i]
+                attn_mask=attn_masks[i]
+                length=len(input_id)
 
-                total_loss += loss.item() * logits.size()[0]
-                num_examples += logits.size()[0]
+                input_id=input_id[0:args.max_len]
+                attn_mask=attn_mask[0:args.max_len]
 
-                y.append(labels.cpu().detach().numpy())
-                yhat.append(np.round(torch.sigmoid(logits).cpu().detach().numpy()))
-                yhat_raw.append(torch.sigmoid(logits).cpu().detach().numpy())
-            else:
-                input_ids, attn_mask, list_labels = get_val_snippets(args, input_ids, attn_mask, labels)
+                # add batch size as 1
+                input_id=input_id.unsqueeze(0)
+                attn_mask=attn_mask.unsqueeze(0)
+
+                logits = model(input_id.to(args.device), attn_mask.to(args.device),length)
+
+                target=labels[i].unsqueeze(0)
+                loss = criterion(logits.to(args.device), target.to(args.device))
+                logits = torch.mean(torch.sigmoid(logits), dim=0)
+            
                 batch_loss = 0.
                 num_snippets = 0
                 all_preds = []
-                for _ in range(len(input_ids)):
-                    logits = model(input_ids[_].to(args.device), attn_mask[_].to(args.device))
-                    loss = criterion(logits.to(args.device), list_labels[_].to(args.device))
 
-                    num_snippets += input_ids[_].size(0)
-                    batch_loss += loss.item() * input_ids[i].size(0)
+                num_snippets += input_id.size(0)
+                batch_loss += loss.item() * input_id.size(0)
+                all_preds.append(logits.unsqueeze(0))
 
-                    logits = torch.mean(torch.sigmoid(logits), dim=0)
-                    all_preds.append(logits.unsqueeze(0))
-                #Report results
-                total_loss += batch_loss
-                logits = torch.cat(all_preds, dim=0)
-                num_examples += num_snippets
+            #Report results
+            total_loss += batch_loss
+            logits = torch.cat(all_preds, dim=0)
+            num_examples += num_snippets
+            print(logits)
+            sys.stdout.flush()
 
-                y.append(labels.cpu().detach().numpy())
-                yhat.append(np.round(logits.cpu().detach().numpy()))
-                yhat_raw.append(logits.cpu().detach().numpy())
+            y.append(target.cpu().detach().numpy())
+            yhat.append(np.round(logits.cpu().detach().numpy()))
+            yhat_raw.append(logits.cpu().detach().numpy())
 
         # Compute scores with results
         y = np.concatenate(y, axis=0)
@@ -105,9 +112,9 @@ def eval(args, model, val_loader):
 
 def train(args, train_loader, val_loader):
     # Define model, parallel training, optimizer.
-    if args.use_ngram: model = NGramTransformer(args.model_name,args.ngram_size)
-    else: model = snippet_bert(args.model_name)
+    model = snippet_model(args.model_name,n_class = 50,layer=args.freeze,type=args.tokenizer)
     model = model.to(args.device)
+    
 
     if args.n_gpu > 1:
         device_ids = [_ for _ in range(args.n_gpu)]
@@ -133,41 +140,44 @@ def train(args, train_loader, val_loader):
     for i in range(start_epoch, args.n_epochs):
         total_loss = 0.
         num_examples = 0
-        for idx, (input_ids, attn_mask, labels) in tqdm(enumerate(train_loader)):
+        for idx, (input_ids, attn_masks, labels) in tqdm(enumerate(train_loader)):
 
             model.train()
-            if args.use_ngram:
-                ngram_encoding = get_ngram_encoding(args, attn_mask.to(args.device), args.ngram_size).cpu()
-                logits = model(input_ids, ngram_encoding)
-                loss = criterion(logits.to(args.device), labels.to(args.device))
+
+            for j in range(len(input_ids)):
+
+                input_id=input_ids[j]
+                attn_mask=attn_masks[j]
+                length=len(input_id)
+
+                input_id=input_id[0:args.max_len]
+                attn_mask=attn_mask[0:args.max_len]
+
+                # add batch size as 1
+                input_id=input_id.unsqueeze(0)
+                attn_mask=attn_mask.unsqueeze(0)
+
+                logits = model(input_id.to(args.device), attn_mask.to(args.device),length)
+                target=labels[j].unsqueeze(0)
+                loss = criterion(logits.to(args.device), target.to(args.device))
+                logits = torch.mean(torch.sigmoid(logits), dim=0)
+                # print(logits)
+                # sys.stdout.flush()
+
+
+                batch_loss = 0.
+                num_snippets = 0
 
                 loss.backward()
                 optimizer.step()
                 model.zero_grad()
 
-                num_examples += logits.size()[0]
-                total_loss += loss.item() * logits.size()[0]
+                #Aggregatings losses
+                num_snippets += input_id.size(0)
+                batch_loss += loss.item() * input_id.size(0)
 
-            else:
-                input_ids, attn_mask, labels = get_train_snippets(args, input_ids, attn_mask, labels)
-
-                batch_loss = 0.
-                num_snippets = 0
-                for _ in range(len(input_ids)):
-
-                    logits = model(input_ids[_], attn_mask[_])
-                    loss = criterion(logits.to(args.device), labels[_].to(args.device))
-
-                    loss.backward()
-                    optimizer.step()
-                    model.zero_grad()
-
-                    #Aggregatings losses
-                    num_snippets += input_ids[_].size(0)
-                    batch_loss += loss.item() * input_ids[_].size(0)
-
-                num_examples += num_snippets
-                total_loss += batch_loss
+            num_examples += num_snippets
+            total_loss += batch_loss
 
         print('')
         print('epoch: {}'.format(i+1))
@@ -240,59 +250,34 @@ def main():
                         help="save best f1 checkpoints.")
     parser.add_argument("--save_best_auc", action="store_true",
                         help="save best auc checkpoints.")
+    parser.add_argument("--tokenizer", default="Longformer", type=str,
+                        help="Saving dir of the final checkpoint.")
+    parser.add_argument("--freeze", type=int, default=0,
+                        help="Choose freeze until which layer")
 
     args = parser.parse_args()
     set_seed(args)
+    print('Starting tokenize...')
+    sys.stdout.flush()
+    tokenize(args)
+    print('Load data...')
+    sys.stdout.flush()
+    train_dataset, val_dataset, test_dataset = load_tensor_cache(args)
 
-    #define tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
-
-    if args.use_ngram:
-        if args.load_data_cache:
-            train_dataset, val_dataset, test_dataset = load_cache(args)
-        else:
-            #load csv file
-            print('Start preprocessing ngram bert data.')
-            sys.stdout.flush()
-            train_dataset, val_dataset, test_dataset = load_data_and_save_cache(args, tokenizer)
-            print('finished')
-            sys.stdout.flush()
-
-        train_loader = DataLoader(dataset=train_dataset,
-                                  batch_size=args.batch_size,
-                                  collate_fn=train_dataset.mimic3_col_func,
-                                  shuffle=True)
-        val_loader = DataLoader(dataset=val_dataset,
-                                batch_size=args.batch_size,
-                                collate_fn=val_dataset.mimic3_col_func,
-                                shuffle=True)
-        test_loader = DataLoader(dataset=test_dataset,
-                                 batch_size=args.batch_size,
-                                 collate_fn=test_dataset.mimic3_col_func,
-                                 shuffle=True)
-    else:
-        if args.load_data_cache:
-            train_dataset, val_dataset, test_dataset = load_tensor_cache(args)
-        else:
-            print('Start preprocessing local bert data.')
-            sys.stdout.flush()
-            train_dataset, val_dataset, test_dataset = load_data_and_save_tensor_cache(args, tokenizer)
-            print('finished')
-            sys.stdout.flush()
-
-        train_loader = DataLoader(dataset=train_dataset,
-                                  batch_size=args.batch_size,
-                                  shuffle=True)
-        val_loader = DataLoader(dataset=val_dataset,
+    train_loader = DataLoader(dataset=train_dataset,
                                 batch_size=args.batch_size,
                                 shuffle=True)
-        test_loader = DataLoader(dataset=test_dataset,
-                                 batch_size=args.batch_size,
-                                 shuffle=True)
+    val_loader = DataLoader(dataset=val_dataset,
+                            batch_size=args.batch_size,
+                            shuffle=False)
+    test_loader = DataLoader(dataset=test_dataset,
+                                batch_size=args.batch_size,
+                                shuffle=True)
 
     print('Data loader is loaded, start training.')
+    # immediate print in hpc 
     sys.stdout.flush()
-    #train
+     #train
     train(args, train_loader, val_loader)
 
 if __name__ == '__main__':

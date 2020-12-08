@@ -24,6 +24,7 @@ from torch.utils.data import TensorDataset, Dataset, DataLoader
 
 import transformers
 from transformers import AutoTokenizer, AutoModel
+from transformers import BertTokenizer,LongformerTokenizer
 
 from data import *
 from models import *
@@ -92,6 +93,61 @@ def load_data_and_save_cache(args, tokenizer):
     pickle.dump(test_dataset, open(join(args.data_dir,'test_50.pkl'),'wb'))
 
     return train_dataset, val_dataset, test_dataset
+
+def tokenize(args):
+    #define tokenizer: checkpoint folder name
+    print('Tokenizer: ', args.tokenizer)
+    # immediate print in hpc 
+    sys.stdout.flush()
+    if args.tokenizer=="Bert":
+        tokenizer=BertTokenizer.from_pretrained("bert-base-uncased")
+    if args.tokenizer=="Longformer":
+        tokenizer=LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+
+    train_df = pd.read_csv(join(args.data_dir,'train_50.csv'),engine='python')
+    val_df = pd.read_csv(join(args.data_dir,'dev_50.csv'),engine='python')
+    test_df = pd.read_csv(join(args.data_dir,'test_50.csv'),engine='python')
+
+    print("load text")
+    sys.stdout.flush()
+    train_texts = [elem[6:-6] for elem in train_df['TEXT']]
+    val_texts = [elem[6:-6] for elem in val_df['TEXT']]
+    test_texts = [elem[6:-6] for elem in test_df['TEXT']]
+
+    train_inputs = tokenizer(train_texts, return_tensors='pt', padding=True)
+    val_inputs = tokenizer(val_texts, return_tensors='pt', padding=True)
+    test_inputs = tokenizer(test_texts, return_tensors='pt', padding=True)
+
+    print("load and transform labels")
+    sys.stdout.flush()
+    with open(join(args.data_dir,'TOP_50_CODES.csv'),'r') as f:
+        idx2code = [elem[:-1] for elem in f.readlines()]
+        f.close()
+    code2idx = {elem:i for i, elem in enumerate(idx2code)}
+
+    train_codes = [[code2idx[code] for code in elem.split(';')] for elem in train_df['LABELS']]
+    val_codes = [[code2idx[code] for code in elem.split(';')] for elem in val_df['LABELS']]
+    test_codes = [[code2idx[code] for code in elem.split(';')] for elem in test_df['LABELS']]
+
+    train_labels = [sum([torch.arange(50) == torch.Tensor([code]) for code in sample]) for sample in train_codes]
+    val_labels = [sum([torch.arange(50) == torch.Tensor([code]) for code in sample]) for sample in val_codes]
+    test_labels = [sum([torch.arange(50) == torch.Tensor([code]) for code in sample]) for sample in test_codes]
+
+    train_labels = torch.cat([elem.unsqueeze(0) for elem in train_labels], dim=0).type('torch.FloatTensor')
+    val_labels = torch.cat([elem.unsqueeze(0) for elem in val_labels], dim=0).type('torch.FloatTensor')
+    test_labels = torch.cat([elem.unsqueeze(0) for elem in test_labels], dim=0).type('torch.FloatTensor')
+
+    print("build dataset and dataloader")
+    sys.stdout.flush()
+    train_dataset = TensorDataset(train_inputs["input_ids"], train_inputs["attention_mask"], train_labels)
+    val_dataset = TensorDataset(val_inputs["input_ids"], val_inputs["attention_mask"], val_labels)
+    test_dataset = TensorDataset(test_inputs["input_ids"], test_inputs["attention_mask"], test_labels)
+
+    pickle.dump(train_dataset, open(join(args.data_dir,'train_50_tensor.pkl'),'wb'))
+    pickle.dump(val_dataset, open(join(args.data_dir,'dev_50_tensor.pkl'),'wb'))
+    pickle.dump(test_dataset, open(join(args.data_dir,'test_50_tensor.pkl'),'wb'))
 
 def load_data_and_save_tensor_cache(args, tokenizer):
     train_df = pd.read_csv(join(args.data_dir,'train_50.csv'),engine='python')
