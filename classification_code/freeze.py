@@ -1,0 +1,1 @@
+# Then freeze the pretrain model layer by layer + classificaion layer; Check difference of prediction acc of nth layer and (n-1)th layer

@@ -17,6 +17,8 @@ from scipy.sparse import csr_matrix
 from sklearn.metrics import roc_curve, auc
 
 import torch
+torch.cuda.empty_cache()
+
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
@@ -99,12 +101,12 @@ def tokenize(args):
     print('Tokenizer: ', args.tokenizer)
     # immediate print in hpc 
     sys.stdout.flush()
-    if args.tokenizer=="Bert":
+    if args.tokenizer=="Bert_base":
         tokenizer=BertTokenizer.from_pretrained("bert-base-uncased")
-    if args.tokenizer=="Longformer":
+    elif args.tokenizer=="Longformer_base":
         tokenizer=LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
     else:
-        tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+        tokenizer = BertTokenizer.from_pretrained(args.tokenizer)
 
     train_df = pd.read_csv(join(args.data_dir,'train_50.csv'),engine='python')
     val_df = pd.read_csv(join(args.data_dir,'dev_50.csv'),engine='python')

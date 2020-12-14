@@ -11,8 +11,6 @@ import numpy as np
 import pandas as pd
 
 import torch
-torch.cuda.empty_cache()
-
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
